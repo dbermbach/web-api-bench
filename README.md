@@ -15,3 +15,17 @@ Setup:
 Dependencies:
 * no Java library dependencies (that's why this is not a maven project :))
 * install cipherscan into the same folder (or change the hard-coded path in class CipherscanRunner, line 81), you can simply clone the cipherscan git from: https://github.com/jvehent/cipherscan
+
+For researchers:
+* If you want to reproduce the results of our paper, you can find our original raw data here: https://github.com/ErikWittern/web-api-benchmarking-data
+* If you use this tool for research purposes with a resulting publication, we would appreciate if you cite our paper:
+```TeX
+@inproceedings{bermbach_wittern_web_api_bench,
+ author = {David Bermbach and Erik Wittern},
+ title = {Benchmarking Web API Quality},
+ booktitle = {Proceedings of the 16th International Conference on Web Engineering (ICWE2016)},
+ series = {ICWE'16},
+ year = {2016},
+ publisher = {Springe}
+}
+```
