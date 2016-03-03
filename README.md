@@ -10,7 +10,6 @@ Setup:
 * put URLs/domain addresses in config files similar to the examples in the folder sampleInputFiles (please, make sure that the respective target "speaks" the desired protocol)
 * specify the location of those files as program parameters and run it
 * preferably, choose a geo-distributed deployment
-* you can use the following analysis scripts afterwards (to be added)
 
 Dependencies:
 * no Java library dependencies (that's why this is not a maven project :))
