@@ -1,0 +1,14 @@
+#list of subdomain addresses which are targeted by ping
+en.wikipedia.org
+maps.googleapis.com
+itunes.apple.com
+musicbrainz.org
+ws.spotify.com
+api.flickr.com
+data.consumerfinance.gov
+api.postcodes.io
+query.yahooapis.com
+www.bbc.co.uk
+api.openweathermap.org
+urls.api.twitter.com
+www.googleapis.com
