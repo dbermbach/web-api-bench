@@ -26,6 +26,6 @@ For researchers:
  booktitle = {Proceedings of the 16th International Conference on Web Engineering (ICWE2016)},
  series = {ICWE'16},
  year = {2016},
- publisher = {Springe}
+ publisher = {Springer}
 }
 ```
