@@ -90,7 +90,7 @@ public class Starter {
 			BufferedReader br = new BufferedReader(new FileReader(filename));
 			String line;
 			while ((line = br.readLine()) != null) {
-				if (!(line.trim().length() == 0)) {
+				if (!(line.trim().length() == 0 || line.startsWith("#"))) {
 					result.add(line.trim());
 				}
 			}
