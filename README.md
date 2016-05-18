@@ -1,4 +1,4 @@
-# web-api-bench
+# WebAPIBench
 This project can be used to run long-term availability and performance tests for web APIs that are available over http(s). Currently, only http(s) GET requests are supported but using POST, PUT, etc. requires only a few changes (statically determine the content of a requests and simply set the URLConnection instance to use POST, PUT, etc.
 
 ## Features
