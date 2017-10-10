@@ -1,0 +1,12 @@
+# subdomain addresses for which we will run cipherscan
+en.wikipedia.org
+data.police.uk
+maps.googleapis.com
+itunes.apple.com
+musicbrainz.org
+api.flickr.com
+s3.amazonaws.com
+data.consumerfinance.gov
+api.postcodes.io
+query.yahooapis.com
+www.googleapis.com

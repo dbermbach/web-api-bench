@@ -1,0 +1,11 @@
+# URLs that will be targeted over http
+en.wikipedia.org/w/api.php?action=query&titles=Albert_Einstein&prop=images&format=json
+data.police.uk/api/crimes-street-dates
+maps.googleapis.com/maps/api/geocode/json?address=New%20York%20City%20US&sensor=false
+itunes.apple.com/search?term=u2&entity=musicVideo
+musicbrainz.org/ws/2/recording?query=%22we%20will%20rock%20you%22%20AND%20arid:0383dadf-2a4e-4d10-a46a-e9e041da8eb3
+api.flickr.com/services/feeds/photos_public.gne
+s3.amazonaws.com/1000genomes
+data.consumerfinance.gov/api/views/gjyk-gq6g/rows.json
+api.postcodes.io/postcodes/GU50BD
+query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22nome%2C%20ak%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys
