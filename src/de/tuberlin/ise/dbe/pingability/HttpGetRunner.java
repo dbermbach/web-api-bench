@@ -78,7 +78,8 @@ public class HttpGetRunner implements Runnable {
 				con.setUseCaches(false);
 			byte [] res = StreamUtils.readFully(con.getInputStream());
 			long latency = System.currentTimeMillis()-start;
-			HttpGetCSVLogger.LOGGER.log(url+";"+start+";"+con.getResponseCode()+";"+latency+";"+(res==null?"0":res.length));			
+			HttpGetCSVLogger.LOGGER.log(url+";"+start+";"+con.getResponseCode()+";"+latency+";"+(res==null?"0":res.length));
+			IsAliveServer.addHttpgetrun(target, start, "HTTP Code "+con.getResponseCode());
 			con.disconnect();
 			
 		} catch (Exception e) {
@@ -86,6 +87,8 @@ public class HttpGetRunner implements Runnable {
 			HttpGetCSVLogger.LOGGER.log(url+";"+start+";exception;"+e.getMessage());
 			e.printStackTrace();
 			GlobalErrorLogger.log(this, target.substring(0, target.indexOf('/')), e.toString());
+			IsAliveServer.addHttpgetrun(target, System.currentTimeMillis(), "Error ("
+					+ e.getClass().getSimpleName() + "):" + e.getMessage());
 		}
 
 	}

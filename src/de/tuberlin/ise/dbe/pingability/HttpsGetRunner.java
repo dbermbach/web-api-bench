@@ -82,7 +82,9 @@ public class HttpsGetRunner implements Runnable {
 			HttpsGetCSVLogger.LOGGER.log(url + ";" + start + ";"
 					+ con.getResponseCode() + ";" + latency + ";"
 					+ con.getCipherSuite()+";"+(res==null?"0":res.length));
+			IsAliveServer.addHttpsgetrun(target, start, "HTTP Code "+con.getResponseCode());
 			con.disconnect();
+			
 
 		} catch (Exception e) {
 			System.out.println("Exception while sending https get to " + target
@@ -91,6 +93,8 @@ public class HttpsGetRunner implements Runnable {
 					+ e.getMessage());
 			e.printStackTrace();
 			GlobalErrorLogger.log(this, target.substring(0, target.indexOf('/')), e.toString());
+			IsAliveServer.addHttpsgetrun(target, System.currentTimeMillis(), "Error ("
+					+ e.getClass().getSimpleName() + "):" + e.getMessage());
 		}
 
 	}

@@ -9,8 +9,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * Use this class to check whether a given URL returns 3xx status codes
- * 
  * @author Dave
  *
  */
@@ -38,8 +36,8 @@ public class CheckUrlsForRedirects {
 					HttpURLConnection con = (HttpURLConnection) new URL(url)
 							.openConnection();
 					if (verbose) {
-						System.out.println(" => " + con.getResponseCode() + "("
-								+ con.getResponseMessage() + ")");
+						System.out.println(" => " + con.getResponseCode()
+								+ "(" + con.getResponseMessage() + ")");
 						if (con.getResponseCode() / 100 == 3) {
 							System.out.println("=> got redirect to "
 									+ con.getHeaderField("Location"));
@@ -47,10 +45,8 @@ public class CheckUrlsForRedirects {
 					} else {
 						if (con.getResponseCode() / 100 == 3) {
 							System.out.println(" sends redirect to "
-									+ con.getHeaderField("Location")
-									+ " [http status code:"
-									+ con.getResponseCode() + ", "
-									+ con.getResponseMessage() + "]");
+									+ con.getHeaderField("Location") + " [http status code:"+con.getResponseCode()
+									+ ", " + con.getResponseMessage() + "]");
 						}
 					}
 					con.disconnect();
@@ -58,9 +54,7 @@ public class CheckUrlsForRedirects {
 			}
 			br.close();
 		} catch (Exception e) {
-			System.out
-					.println("Could not read config file, terminating now:\n");
-			e.printStackTrace();
+			System.out.println("Could not read config file, terminating now:\n");e.printStackTrace();
 			System.exit(-1);
 		}
 

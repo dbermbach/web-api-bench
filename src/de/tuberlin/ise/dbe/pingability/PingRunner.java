@@ -8,7 +8,6 @@ import java.io.InputStreamReader;
 
 /**
  * @author Dave
- *
  */
 public class PingRunner implements Runnable {
 
@@ -16,8 +15,7 @@ public class PingRunner implements Runnable {
 	private static int noOfPackets = 5;
 
 	/**
-	 * terminates after receiving noOfPackets responses or after
-	 * secondsToTimeout seconds
+	 * terminates after receiving noOfPackets responses or after secondsToTimeout seconds
 	 */
 	private static int secondsToTimeout = 5;
 
@@ -31,10 +29,7 @@ public class PingRunner implements Runnable {
 	private boolean running = true;
 
 	/**
-	 * 
-	 * @param target
-	 *            target host
-	 * 
+	 * @param target target host
 	 */
 	PingRunner(String target) {
 		super();
@@ -70,11 +65,7 @@ public class PingRunner implements Runnable {
 	/**
 	 * executes a ping
 	 * 
-	 * @param inDebugMode
-	 *            if true will not actually ping but rather use the dummy
-	 *            methods
-	 * 
-	 * 
+	 * @param inDebugMode if true will not actually ping but rather use the dummy methods
 	 */
 	private void runPing(boolean inDebugMode) {
 		double[] res = null;
@@ -83,12 +74,11 @@ public class PingRunner implements Runnable {
 		try {
 			res = new double[2];
 			if (!inDebugMode) {
-				ProcessBuilder pb = new ProcessBuilder("ping", "-w "
-						+ +secondsToTimeout, "-c " + noOfPackets, target);
+				ProcessBuilder pb = new ProcessBuilder("ping", "-w " + +secondsToTimeout, "-c "
+						+ noOfPackets, target);
 				Process p = pb.start();
 
-				BufferedReader br = new BufferedReader(new InputStreamReader(
-						p.getInputStream()));
+				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
 				while ((line = br.readLine()) != null) {
 					// System.out.println(line);
@@ -109,24 +99,26 @@ public class PingRunner implements Runnable {
 			// System.out.println(result);
 			line = result.substring(result.indexOf("received") + 10);
 			// System.out.println(line);
-			res[0] = 1 - (Double.parseDouble(line.substring(0,
-					line.indexOf('%'))) / 100.0);
+			res[0] = 1 - (Double.parseDouble(line.substring(0, line.indexOf('%'))) / 100.0);
 			if (line.indexOf("rtt") > -1) {
 				res[1] = Double.parseDouble(line.split("/")[4]);
 			} else {
 				res[1] = -1;
 			}
 			// persist results
-			PingCSVLogger.LOGGER.log(target + ";" + start + ";" + end + ";"
-					+ res[0] + ";" + res[1]);
+			PingCSVLogger.LOGGER
+					.log(target + ";" + start + ";" + end + ";" + res[0] + ";" + res[1]);
 			// System.out.println("Result for " + target + ": pingability="
 			// + res[0] + ", avg. latency=" + res[1]);
+			IsAliveServer.addPingrun(target, start, "pingability=" + res[0] + ", avg. latency="
+					+ res[1]);
 		} catch (Exception e) {
 			System.out.println("Exception while pinging " + target + ":\n" + e);
-			PingCSVLogger.LOGGER.log(target + ";" + start + ";exception;"
-					+ e.getMessage());
+			PingCSVLogger.LOGGER.log(target + ";" + start + ";exception;" + e.getMessage());
 			e.printStackTrace();
 			GlobalErrorLogger.log(this, target, e.toString());
+			IsAliveServer.addPingrun(target, System.currentTimeMillis(), "Error ("
+					+ e.getClass().getSimpleName() + "):" + e.getMessage());
 		}
 
 	}

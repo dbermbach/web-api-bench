@@ -25,6 +25,8 @@ public class Starter {
 					.println("Start with location of config files as parameters: 1) ping 2) http get 3) https get 4) cipherscan");
 			return;
 		}
+		System.out.println("Starting IsAliveServer");
+		IsAliveServer.startServer();
 		List<String> pingTargets = readConfigFile(args[0]);
 		List<String> httpTargets = readConfigFile(args[1]);
 		List<String> httpsTargets = readConfigFile(args[2]);
@@ -81,6 +83,7 @@ public class Starter {
 		HttpGetCSVLogger.LOGGER.terminate();
 		HttpsGetCSVLogger.LOGGER.terminate();
 		scan.close();
+		IsAliveServer.stopServer();
 		System.out.println("Byebye.");
 	}
 
@@ -90,7 +93,7 @@ public class Starter {
 			BufferedReader br = new BufferedReader(new FileReader(filename));
 			String line;
 			while ((line = br.readLine()) != null) {
-				if (!(line.trim().length() == 0 || line.startsWith("#"))) {
+				if (!(line.trim().length() == 0)) {
 					result.add(line.trim());
 				}
 			}
