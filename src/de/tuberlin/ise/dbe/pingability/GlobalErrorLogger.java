@@ -3,7 +3,8 @@
  */
 package de.tuberlin.ise.dbe.pingability;
 
-import java.io.FileNotFoundException;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -21,8 +22,8 @@ public class GlobalErrorLogger {
 
 	static void open() {
 		try {
-			pw = new PrintWriter("errors.log");
-		} catch (FileNotFoundException e) {
+			pw = new PrintWriter(new BufferedWriter(new FileWriter("errors.log", true)));
+		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 		pw.println(sdf.format(new Date()) + ": Error log opened.");

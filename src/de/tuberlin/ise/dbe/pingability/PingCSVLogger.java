@@ -3,6 +3,8 @@
  */
 package de.tuberlin.ise.dbe.pingability;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -43,7 +45,7 @@ public class PingCSVLogger implements Runnable {
 	public void run() {
 		PrintWriter pw;
 		try {
-			pw = new PrintWriter(outputfile);
+			pw = new PrintWriter(new BufferedWriter(new FileWriter(outputfile, true)));
 			pw.println(PingRunner.getOutputFormat());
 		} catch (Exception e) {
 			System.out
