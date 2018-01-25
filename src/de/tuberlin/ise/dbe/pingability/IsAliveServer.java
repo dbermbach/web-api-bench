@@ -91,8 +91,12 @@ public class IsAliveServer extends AbstractHandler {
 	}
 
 	private static String assembleLine(String target, long date, String result) {
-		return "<tr><td>" + new Date(date) + "</td><td>" + result + "</td><td>" + target
-				+ "</td></tr>";
+		if (target.contains("/"))
+			return "<tr><td>" + new Date(date) + "</td><td>" + result + "</td><td>"
+					+ target.substring(0, target.indexOf("/")) + "</td></tr>";
+		else
+			return "<tr><td>" + new Date(date) + "</td><td>" + result + "</td><td>" + target
+					+ "</td></tr>";
 	}
 
 	private static String getTableHeader() {
@@ -109,6 +113,10 @@ public class IsAliveServer extends AbstractHandler {
 		response.setStatus(HttpServletResponse.SC_OK);
 
 		// Write back response
+		response.getWriter()
+				.println(
+						"<!DOCTYPE html><html><head><style>table, th, td {border: 1px solid black;}</style></head><body>");
+
 		response.getWriter().println("<h1>Web API Benchmark is still alive</h1>");
 
 		response.getWriter().println("<h2>Ping:</h2>");
@@ -134,6 +142,7 @@ public class IsAliveServer extends AbstractHandler {
 		for (String s : cipherscans.values())
 			response.getWriter().println(s);
 		response.getWriter().println("</table>");
+		response.getWriter().println("</body></html>");
 
 		// Inform jetty that this request has now been handled
 		baseRequest.setHandled(true);
@@ -146,7 +155,7 @@ public class IsAliveServer extends AbstractHandler {
 		handler.httpgets.put("test",
 				assembleLine("test target", System.currentTimeMillis(), "test result"));
 		handler.httpsgets.put("test",
-				assembleLine("test target", System.currentTimeMillis(), "test result"));
+				assembleLine("test target/abc", System.currentTimeMillis(), "test result"));
 		handler.cipherscans.put("test",
 				assembleLine("test target", System.currentTimeMillis(), "test result"));
 
