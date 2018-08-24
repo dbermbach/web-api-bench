@@ -44,7 +44,7 @@ public class HttpsGetCSVLogger implements Runnable {
 		PrintWriter pw;
 		try {
 			pw = new PrintWriter(new BufferedWriter(new FileWriter(outputfile, true)));
-			pw.println(HttpGetRunner.getOutputFormat());
+			pw.println(HttpsGetRunner.getOutputFormat());
 		} catch (Exception e) {
 			GlobalErrorLogger.log(this, "logger terminating", e.toString());
 			System.out
