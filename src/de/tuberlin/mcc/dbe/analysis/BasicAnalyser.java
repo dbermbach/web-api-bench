@@ -17,7 +17,7 @@ import java.util.TreeMap;
 /**
  * @author Dave
  */
-public class BasicAvailabilityAnalyser {
+public class BasicAnalyser {
 
 	/** mapping: api => inner map; day => result set */
 	private static TreeMap<String, TreeMap<Calendar, ResultEntryPerDay>> results = new TreeMap<>();
@@ -31,8 +31,8 @@ public class BasicAvailabilityAnalyser {
 	private static PrintWriter resOut;
 	private static PrintWriter latsOut;
 	private static PrintWriter latsSummary;
-	private static String resOutFileName = "https2015";
-	private static String inFolder = "C:\\temp\\https_2015";
+	private static String resOutFileName = "http2018";
+	private static String inFolder = "C:\\temp\\http_2018";
 
 	static {
 		try {
