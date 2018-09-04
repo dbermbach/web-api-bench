@@ -19,24 +19,31 @@ import java.util.TreeMap;
  */
 public class BasicAnalyser {
 
+	/**
+	 * is cleared before the next file is analysed mapping: api => inner map; day => result set
+	 */
+	private static TreeMap<String, TreeMap<Calendar, ResultEntryPerDay>> dailyResultsPerAPIPerRegion = new TreeMap<>();
+
 	/** mapping: api => inner map; day => result set */
-	private static TreeMap<String, TreeMap<Calendar, ResultEntryPerDay>> results = new TreeMap<>();
+	private static TreeMap<String, TreeMap<Calendar, ResultEntryPerDay>> dailyResultsPerAPI = new TreeMap<>();
 
 	/** mapping: api => inner map; region => result set */
-	private static TreeMap<String, TreeMap<String, ResultEntryFullTest>> resultsAggregated = new TreeMap<>();
+	private static TreeMap<String, TreeMap<String, ResultEntryFullTest>> resultsPerAPIAggregated = new TreeMap<>();
 
 	/** mapping: api => inner map; region => series of latency values */
 	private static TreeMap<String, TreeMap<String, ArrayList<Integer>>> latencies = new TreeMap<>();
 
 	private static PrintWriter resOut;
+	private static PrintWriter allRegionDailyOut;
 	private static PrintWriter latsOut;
 	private static PrintWriter latsSummary;
-	private static String resOutFileName = "http2018";
-	private static String inFolder = "C:\\temp\\http_2018";
+	private static String resOutFileName = "http2015";
+	private static String inFolder = "C:\\temp\\http_2015";
 
 	static {
 		try {
 			resOut = new PrintWriter(resOutFileName + "_availability_report.txt");
+			allRegionDailyOut = new PrintWriter(resOutFileName + "daily_availability.csv");
 			latsOut = new PrintWriter(resOutFileName + "_daily latency_report.txt");
 			latsSummary = new PrintWriter(resOutFileName + "_latency_summary_report.txt");
 		} catch (FileNotFoundException e) {
@@ -59,12 +66,27 @@ public class BasicAnalyser {
 		}
 		printAggregates();
 		resOut.close();
+		exportDailyAvailabilities();
+		allRegionDailyOut.close();
 		System.out.println("Exporting latencies...");
 		exportLatencies();
 		exportLatencySummary();
 		latsOut.close();
 		latsSummary.close();
 		System.out.println("DONE.");
+	}
+
+	/**
+	 * 
+	 */
+	private static void exportDailyAvailabilities() {
+		for(String api: dailyResultsPerAPI.keySet()){
+			allRegionDailyOut.println(api);
+			allRegionDailyOut.println(ResultEntryPerDay.getAvailabilityAsCSVHeader());
+			for(ResultEntryPerDay repd: dailyResultsPerAPI.get(api).values())
+				allRegionDailyOut.println(repd.getAvailabilityAsCSV());
+		}
+		
 	}
 
 	/**
@@ -149,10 +171,11 @@ public class BasicAnalyser {
 	 * 
 	 */
 	private static void printAggregates() {
-		for (String api : resultsAggregated.keySet()) {
-			doublePrint("Aggregated availability results for API " + api);
+		for (String api : resultsPerAPIAggregated.keySet()) {
+			doublePrint("Aggregated availability dailyResultsPerAPIPerRegion for API " + api);
 			int avail = 0, unavail = 0, code4 = 0, code5 = 0, other = 0;
-			for (Entry<String, ResultEntryFullTest> entry : resultsAggregated.get(api).entrySet()) {
+			for (Entry<String, ResultEntryFullTest> entry : resultsPerAPIAggregated.get(api)
+					.entrySet()) {
 				avail += entry.getValue().available;
 				unavail += entry.getValue().unavailable;
 				code4 += entry.getValue().code400;
@@ -173,7 +196,7 @@ public class BasicAnalyser {
 	}
 
 	private static void analyseFile(File file) throws Exception {
-		results.clear();
+		dailyResultsPerAPIPerRegion.clear();
 		boolean analyseHttp = false;
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		String line = br.readLine();
@@ -206,13 +229,14 @@ public class BasicAnalyser {
 
 		doublePrint("Results for file " + file.getName() + ":");
 		latsOut.println("Results from region " + file.getName());
-		for (String api : results.keySet()) {
-			doublePrint("Got entries for " + results.get(api).size() + " days in API " + api);
+		for (String api : dailyResultsPerAPIPerRegion.keySet()) {
+			doublePrint("Got entries for " + dailyResultsPerAPIPerRegion.get(api).size()
+					+ " days in API " + api);
 		}
-		for (String api : results.keySet()) {
+		for (String api : dailyResultsPerAPIPerRegion.keySet()) {
 			doublePrint("Results for API " + api);
 			latsOut.println("Average daily latency for API " + api);
-			for (ResultEntryPerDay re : results.get(api).values()) {
+			for (ResultEntryPerDay re : dailyResultsPerAPIPerRegion.get(api).values()) {
 				String print = re.toString();
 				latsOut.println(re.getDailyLatencyString());
 				if (print != null) {
@@ -231,7 +255,9 @@ public class BasicAnalyser {
 		if (splits.length == exceptionLength) {
 			// error case
 			ResultEntryPerDay dayEntry = getOrCreatePerDayResultSet(splits[0], filename,
-					Long.parseLong(splits[1]));
+					Long.parseLong(splits[1]),dailyResultsPerAPIPerRegion);
+			ResultEntryPerDay allRegionDayEntry = getOrCreatePerDayResultSet(splits[0], filename,
+					Long.parseLong(splits[1]),dailyResultsPerAPI);
 			String exceptionMsg = splits[splits.length - 1].trim();
 			if (exceptionMsg.startsWith("Server returned HTTP response code:")) {
 				exceptionMsg = exceptionMsg.replaceAll("Server returned HTTP response code: ", "")
@@ -240,9 +266,11 @@ public class BasicAnalyser {
 					int code = Integer.parseInt(exceptionMsg);
 					if (code < 500) {
 						dayEntry.addCode400();
+						allRegionDayEntry.addCode400();
 						reft.addCode400();
 					} else {
 						dayEntry.addCode500();
+						allRegionDayEntry.addCode500();
 						reft.addCode500();
 					}
 				} catch (Exception e) {
@@ -250,9 +278,11 @@ public class BasicAnalyser {
 							+ splits[splits.length - 1]);
 					dayEntry.addOtherNonavail();
 					reft.addOtherNonavail();
+					allRegionDayEntry.addOtherNonavail();
 				}
 			} else {
 				dayEntry.addOtherNonavail();
+				allRegionDayEntry.addOtherNonavail();
 				reft.addOtherNonavail();
 			}
 			latencies.add(-100);
@@ -260,8 +290,11 @@ public class BasicAnalyser {
 		} else if (splits.length == okayLength) {
 			// okay case
 			ResultEntryPerDay dayEntry = getOrCreatePerDayResultSet(splits[0], filename,
-					Long.parseLong(splits[1]));
+					Long.parseLong(splits[1]),dailyResultsPerAPIPerRegion);
+			ResultEntryPerDay allRegionDayEntry = getOrCreatePerDayResultSet(splits[0], filename,
+					Long.parseLong(splits[1]),dailyResultsPerAPI);
 			dayEntry.addAvailable();
+			allRegionDayEntry.addAvailable();
 			reft.addAvailable();
 			latencies.add(Integer.parseInt(splits[3]));
 			dayEntry.addLatency(Integer.parseInt(splits[3]));
@@ -277,11 +310,11 @@ public class BasicAnalyser {
 	}
 
 	private static ResultEntryPerDay getOrCreatePerDayResultSet(String api, String region,
-			long timestamp) {
-		TreeMap<Calendar, ResultEntryPerDay> map = results.get(api);
+			long timestamp, TreeMap<String, TreeMap<Calendar, ResultEntryPerDay>> outerMap) {
+		TreeMap<Calendar, ResultEntryPerDay> map = outerMap.get(api);
 		if (map == null) {
 			map = new TreeMap<>();
-			results.put(api, map);
+			outerMap.put(api, map);
 		}
 		ResultEntryPerDay dayEntry = null;
 		for (ResultEntryPerDay re : map.values()) {
@@ -312,10 +345,10 @@ public class BasicAnalyser {
 	}
 
 	private static ResultEntryFullTest getOrCreateFullTimeResultSet(String api, String region) {
-		TreeMap<String, ResultEntryFullTest> entriesByRegion = resultsAggregated.get(api);
+		TreeMap<String, ResultEntryFullTest> entriesByRegion = resultsPerAPIAggregated.get(api);
 		if (entriesByRegion == null) {
 			entriesByRegion = new TreeMap<>();
-			resultsAggregated.put(api, entriesByRegion);
+			resultsPerAPIAggregated.put(api, entriesByRegion);
 		}
 		ResultEntryFullTest reft = entriesByRegion.get(region);
 		if (reft == null) {
@@ -363,6 +396,13 @@ class ResultEntryPerDay {
 			return null;
 	}
 
+	public String getAvailabilityAsCSV(){
+		return Util.asMonthDay(start)+";"+available+";"+unavailable+";"+code400+";"+code500+";"+otherNonAvail;
+	}
+	
+	public static String getAvailabilityAsCSVHeader(){
+		return "day;available;unavailable;code_4XX;code_5XX;other_unavailable";
+	}
 	private void updateAvail() {
 		overallAvail = ((int) (available * 10000.0 / (available + unavailable)) / 100);
 	}
