@@ -37,8 +37,8 @@ public class BasicAnalyser {
 	private static PrintWriter allRegionDailyOut;
 	private static PrintWriter latsOut;
 	private static PrintWriter latsSummary;
-	private static String resOutFileName = "http2015";
-	private static String inFolder = "C:\\temp\\http_2015";
+	private static String resOutFileName = "ping2018";
+	private static String inFolder = "C:\\temp\\ping_2018";
 
 	static {
 		try {
@@ -55,6 +55,8 @@ public class BasicAnalyser {
 
 	static int exceptionLength;
 	static int okayLength;
+	static boolean analysingPing = false;
+	static int pingPackageNumber = 5;
 
 	/**
 	 * @param args
@@ -80,13 +82,13 @@ public class BasicAnalyser {
 	 * 
 	 */
 	private static void exportDailyAvailabilities() {
-		for(String api: dailyResultsPerAPI.keySet()){
+		for (String api : dailyResultsPerAPI.keySet()) {
 			allRegionDailyOut.println(api);
 			allRegionDailyOut.println(ResultEntryPerDay.getAvailabilityAsCSVHeader());
-			for(ResultEntryPerDay repd: dailyResultsPerAPI.get(api).values())
+			for (ResultEntryPerDay repd : dailyResultsPerAPI.get(api).values())
 				allRegionDailyOut.println(repd.getAvailabilityAsCSV());
 		}
-		
+
 	}
 
 	/**
@@ -209,6 +211,8 @@ public class BasicAnalyser {
 			analyseHttp = false;
 		} else if (file.getName().startsWith("http_")) {
 			analyseHttp = true;
+		} else if (file.getName().startsWith("ping_")) {
+			analysingPing = true;
 		} else {
 			System.out.println("File " + file + " was not in the expected format.");
 			br.close();
@@ -251,13 +255,55 @@ public class BasicAnalyser {
 		String[] splits = line.split(";");
 		ResultEntryFullTest reft = getOrCreateFullTimeResultSet(splits[0], filename);
 		ArrayList<Integer> latencies = getOrCreateLatencyArrayList(splits[0], filename);
+		// process ping results and return at end of if
+		if (analysingPing) {
+			try {
+
+				String api = splits[0];
+				long start = Long.parseLong(splits[1]);
+				// long end = Long.parseLong(splits[2]);
+				double pingability;
+				if (splits[2].equals("exception"))
+					pingability = 0;
+				else
+					pingability = Double.parseDouble(splits[3]);
+//				double avglatency = Double.parseDouble(splits[4]);
+
+				ResultEntryPerDay dayEntry = getOrCreatePerDayResultSet(api, filename, start,
+						dailyResultsPerAPIPerRegion);
+				ResultEntryPerDay allRegionDayEntry = getOrCreatePerDayResultSet(api, filename,
+						start, dailyResultsPerAPI);
+
+				int avails = (int) Math.round(pingability * pingPackageNumber);
+				int unavails = pingPackageNumber - avails;
+				for (int i = 0; i < avails; i++) {
+					dayEntry.addAvailable();
+					allRegionDayEntry.addAvailable();
+					reft.addAvailable();
+				}
+				for (int i = 0; i < unavails; i++) {
+					dayEntry.addOtherNonavail();
+					reft.addOtherNonavail();
+					allRegionDayEntry.addOtherNonavail();
+				}
+
+//				latencies.add((int) Math.round(avglatency));
+//				dayEntry.addLatency((int) Math.round(avglatency));
+
+			} catch (Exception e) {
+				System.out.println("Could not process line: " + line);
+				e.printStackTrace();
+			}
+			return; // don't continue to http/https analysis - terminate method here
+		}
+		// process http/https results
 
 		if (splits.length == exceptionLength) {
 			// error case
 			ResultEntryPerDay dayEntry = getOrCreatePerDayResultSet(splits[0], filename,
-					Long.parseLong(splits[1]),dailyResultsPerAPIPerRegion);
+					Long.parseLong(splits[1]), dailyResultsPerAPIPerRegion);
 			ResultEntryPerDay allRegionDayEntry = getOrCreatePerDayResultSet(splits[0], filename,
-					Long.parseLong(splits[1]),dailyResultsPerAPI);
+					Long.parseLong(splits[1]), dailyResultsPerAPI);
 			String exceptionMsg = splits[splits.length - 1].trim();
 			if (exceptionMsg.startsWith("Server returned HTTP response code:")) {
 				exceptionMsg = exceptionMsg.replaceAll("Server returned HTTP response code: ", "")
@@ -290,9 +336,9 @@ public class BasicAnalyser {
 		} else if (splits.length == okayLength) {
 			// okay case
 			ResultEntryPerDay dayEntry = getOrCreatePerDayResultSet(splits[0], filename,
-					Long.parseLong(splits[1]),dailyResultsPerAPIPerRegion);
+					Long.parseLong(splits[1]), dailyResultsPerAPIPerRegion);
 			ResultEntryPerDay allRegionDayEntry = getOrCreatePerDayResultSet(splits[0], filename,
-					Long.parseLong(splits[1]),dailyResultsPerAPI);
+					Long.parseLong(splits[1]), dailyResultsPerAPI);
 			dayEntry.addAvailable();
 			allRegionDayEntry.addAvailable();
 			reft.addAvailable();
@@ -396,13 +442,15 @@ class ResultEntryPerDay {
 			return null;
 	}
 
-	public String getAvailabilityAsCSV(){
-		return Util.asMonthDay(start)+";"+available+";"+unavailable+";"+code400+";"+code500+";"+otherNonAvail;
+	public String getAvailabilityAsCSV() {
+		return Util.asMonthDay(start) + ";" + available + ";" + unavailable + ";" + code400 + ";"
+				+ code500 + ";" + otherNonAvail;
 	}
-	
-	public static String getAvailabilityAsCSVHeader(){
+
+	public static String getAvailabilityAsCSVHeader() {
 		return "day;available;unavailable;code_4XX;code_5XX;other_unavailable";
 	}
+
 	private void updateAvail() {
 		overallAvail = ((int) (available * 10000.0 / (available + unavailable)) / 100);
 	}
